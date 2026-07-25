@@ -180,7 +180,7 @@ let cM,cX,cP,cQ;
 async function init(){
   show('loading');
   try {
-    const res = await fetch(JSON_FILE, { cache:'no-cache' });
+    const res = await fetch(JSON_FILE + '?t=' + Date.now(), { cache:'no-cache' });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
     loadData(data);
