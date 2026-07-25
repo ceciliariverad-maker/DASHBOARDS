@@ -281,7 +281,7 @@ function buildMix(idx,vida,gmm,ah,lbl){
   if(cX)cX.destroy();
   const total=vida+gmm+ah;
   cX=new Chart(document.getElementById('cMix'),{type:'doughnut',data:{labels:['VIDA','GMM','A&H'],datasets:[{data:[vida,gmm,ah],backgroundColor:['#F5A623','#1a1a1a','#D4921A'],borderWidth:0,hoverOffset:8}]},
-  options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:10}},tooltip:{callbacks:{label:c=>` ${c.label}: ${mxn(c.parsed)} (${total?((c.parsed/total)*100).toFixed(1):0}%)`}}}},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:10,generateLabels:(ch)=>{const d=ch.data;const tot=d.datasets[0].data.reduce((a,b)=>a+b,0);return d.labels.map((lbl,i)=>({text:`${lbl}  ${tot?((d.datasets[0].data[i]/tot)*100).toFixed(1):0}%`,fillStyle:d.datasets[0].backgroundColor[i],strokeStyle:d.datasets[0].backgroundColor[i],hidden:false,index:i}));}}},tooltip:{callbacks:{label:c=>` ${c.label}: ${mxn(c.parsed)} (${total?((c.parsed/total)*100).toFixed(1):0}%)`}}}},
   plugins:[{id:'ct',afterDraw(ch){const{ctx,chartArea:{left,right,top,bottom}}=ch;const cx=(left+right)/2,cy=(top+bottom)/2;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillStyle='#0f172a';ctx.fillText(fmt(total),cx,cy-8);ctx.font='10px -apple-system,sans-serif';ctx.fillStyle='#94a3b8';ctx.fillText(lbl.length>14?'Período sel.':lbl,cx,cy+8);ctx.restore();}}]});
 }
 
