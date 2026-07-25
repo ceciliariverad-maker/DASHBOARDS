@@ -161,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <script>
 // ═══ NOMBRE DEL JSON (en la misma carpeta que este HTML) ══════════════════════
-const JSON_FILE = 'https://graph.microsoft.com/v1.0/shares/u!aHR0cHM6Ly9uZXRvcmdmdDE4Njc5MjQwLnNoYXJlcG9pbnQuY29tLzp1Oi9nL0lRQnlRWms5OWs5ZVQ0a1ZWamtwUEtlSUFmQ3Yxd1RfXzVOT2w3MzR2TTRTY3FZP2U9VllwYWY0/driveItem/content';
+const JSON_FILE = './datos.json';
 
 // ═══ DATA ═════════════════════════════════════════════════════════════════════
 let MESES=[], PNA_VIDA_MES=[], PNA_GMM_MES=[], PNA_AH_MES=[];
@@ -173,7 +173,7 @@ let cM,cX,cP,cQ;
 async function init(){
   show('loading');
   try {
-    const res = await fetch(JSON_FILE, { credentials:'include', cache:'no-cache' });
+    const res = await fetch(JSON_FILE, { cache:'no-cache' });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
     loadData(data);
