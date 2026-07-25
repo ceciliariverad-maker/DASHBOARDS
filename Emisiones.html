@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Desempeño Comercial 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{color-scheme:light;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f4f8;color:#1e293b;min-height:100vh;}
+
+/* LOADING / ERROR */
+#loadingState{display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;gap:16px;}
+.spinner{width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-txt{font-size:14px;color:#64748b;font-weight:500;}
+#errorState{display:none;max-width:520px;margin:60px auto;background:#fff;border-radius:14px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,.1);text-align:center;}
+.err-ico{font-size:40px;margin-bottom:12px;}
+.err-title{font-size:17px;font-weight:800;color:#0f172a;margin-bottom:8px;}
+.err-sub{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:20px;}
+.err-btn{padding:10px 24px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.err-btn:hover{background:#1d4ed8;}
+
+/* DASHBOARD */
+#dashState{display:none;}
+.hdr{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.hdr h1{font-size:16px;font-weight:800;}
+.hdr .sub{font-size:11px;opacity:.7;margin-top:2px;}
+.hdr-right{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;}
+.pill-btn{cursor:pointer;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;color:#fff;transition:.15s;}
+.pill-btn:hover{background:rgba(255,255,255,.3);}
+.main{padding:16px 18px;max-width:1400px;margin:0 auto;}
+.filter-bar{display:flex;gap:12px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+.filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.flbl{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+.fsel{padding:5px 10px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;font-weight:500;color:#1e293b;cursor:pointer;outline:none;}
+.fsel:focus{border-color:#2563eb;}
+.fbtn{padding:5px 12px;border:1.5px solid #e2e8f0;border-radius:20px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#475569;transition:.15s;white-space:nowrap;}
+.fbtn:hover{border-color:#2563eb;color:#2563eb;}
+.fbtn.on{background:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 2px 6px rgba(37,99,235,.3);}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
+.kpi{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.08);position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.k1::after{background:#2563eb;}.kpi.k2::after{background:#16a34a;}.kpi.k3::after{background:#7c3aed;}
+.kpi.k4::after{background:#0891b2;}.kpi.k5::after{background:#d97706;}
+.kpi-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-val{font-size:22px;font-weight:900;color:#0f172a;margin:4px 0 2px;line-height:1.1;}
+.kpi-sub{font-size:11px;color:#94a3b8;}
+.kpi-ico{position:absolute;right:12px;top:12px;font-size:22px;opacity:.1;}
+.row2{display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:12px;}
+.row3{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.card{background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.ct{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:2px;}
+.cs{font-size:11px;color:#94a3b8;margin-bottom:12px;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;padding:7px 9px;text-align:left;border-bottom:1.5px solid #f1f5f9;}
+.tbl td{padding:9px 9px;border-bottom:1px solid #f8fafc;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#f8fafc;}
+.tr{text-align:right;}.fw{font-weight:700;}
+.badge-v{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;}
+.badge-g{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;background:#dcfce7;color:#15803d;}
+.badge-a{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;background:#ede9fe;color:#6d28d9;}
+.ttl td{background:#f8fafc;font-weight:700;border-top:2px solid #e2e8f0!important;font-size:12px;}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr);}.row2,.row3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingState">
+  <div class="spinner"></div>
+  <div class="load-txt">Cargando datos…</div>
+</div>
+
+<!-- ERROR -->
+<div id="errorState">
+  <div class="err-ico">📂</div>
+  <div class="err-title">No se pudieron cargar los datos</div>
+  <div class="err-sub">Asegúrate de abrir este archivo desde OneDrive o SharePoint (no desde tu computadora local) y de estar conectado con tu cuenta de trabajo.</div>
+  <button class="err-btn" onclick="init()">🔄 Reintentar</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashState">
+  <div class="hdr">
+    <div>
+      <h1>📊 Dashboard Desempeño Comercial 2026</h1>
+      <div class="sub">Emisiones Acumuladas · VIDA · GMM · A&H</div>
+    </div>
+    <div class="hdr-right">
+      <div class="pill" id="hdrDate">–</div>
+      <button class="pill-btn" onclick="init()">🔄 Actualizar</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="flbl">Agente</span>
+        <select class="fsel" id="selAgente" onchange="applyFilters()"><option value="all">Todos</option></select>
+      </div>
+      <div class="filter-group">
+        <span class="flbl">Mes</span>
+        <div id="mesRow" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi k1"><div class="kpi-ico">📋</div><div class="kpi-lbl">Pólizas VIDA</div><div class="kpi-val" id="k1">–</div><div class="kpi-sub" id="k1s"></div></div>
+      <div class="kpi k2"><div class="kpi-ico">🏥</div><div class="kpi-lbl">Pólizas GMM</div><div class="kpi-val" id="k2">–</div><div class="kpi-sub" id="k2s"></div></div>
+      <div class="kpi k3"><div class="kpi-ico">🩺</div><div class="kpi-lbl">Pólizas A&H</div><div class="kpi-val" id="k3">–</div><div class="kpi-sub" id="k3s"></div></div>
+      <div class="kpi k4"><div class="kpi-ico">💰</div><div class="kpi-lbl">PNA Total</div><div class="kpi-val" id="k4">–</div><div class="kpi-sub" id="k4s">Prima Anual Sin Gastos</div></div>
+      <div class="kpi k5"><div class="kpi-ico">👥</div><div class="kpi-lbl">Agentes Activos</div><div class="kpi-val" id="k5">–</div><div class="kpi-sub" id="k5s"></div></div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <div class="ct">PNA Mensual por Tipo de Seguro</div>
+        <div class="cs" id="csMonthly">Prima Anual Sin Gastos · VIDA · GMM · A&H</div>
+        <div style="position:relative;height:230px"><canvas id="cMonthly"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct">Mix por Tipo de Seguro</div>
+        <div class="cs" id="csMix">Participación en PNA — período seleccionado</div>
+        <div style="position:relative;height:230px"><canvas id="cMix"></canvas></div>
+      </div>
+    </div>
+
+    <div class="row3">
+      <div class="card">
+        <div class="ct">PNA por Agente</div>
+        <div class="cs" id="csPNA">Período seleccionado</div>
+        <div style="position:relative;height:280px"><canvas id="cPNA"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct">Pólizas por Agente</div>
+        <div class="cs" id="csPol">Período seleccionado</div>
+        <div style="position:relative;height:280px"><canvas id="cPol"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Detalle por Agente</div>
+      <div class="cs" id="csTbl">Pólizas y PNA por tipo · período seleccionado</div>
+      <table class="tbl">
+        <thead><tr>
+          <th>Agente</th>
+          <th class="tr">Pól. VIDA</th><th class="tr">PNA VIDA</th>
+          <th class="tr">Pól. GMM</th><th class="tr">PNA GMM</th>
+          <th class="tr">Pól. A&H</th><th class="tr">PNA A&H</th>
+          <th class="tr">Total Pól.</th><th class="tr">PNA Total</th>
+        </tr></thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ NOMBRE DEL JSON (en la misma carpeta que este HTML) ══════════════════════
+const JSON_FILE = 'https://graph.microsoft.com/v1.0/shares/u!aHR0cHM6Ly9uZXRvcmdmdDE4Njc5MjQwLnNoYXJlcG9pbnQuY29tLzp1Oi9nL0lRQnlRWms5OWs5ZVQ0a1ZWamtwUEtlSUFmQ3Yxd1RfXzVOT2w3MzR2TTRTY3FZP2U9VllwYWY0/driveItem/content';
+
+// ═══ DATA ═════════════════════════════════════════════════════════════════════
+let MESES=[], PNA_VIDA_MES=[], PNA_GMM_MES=[], PNA_AH_MES=[];
+let POL_VIDA_MES=[], POL_GMM_MES=[], POL_AH_MES=[], agentes=[];
+let selMeses=new Set(), selAgente='all';
+let cM,cX,cP,cQ;
+
+// ═══ CARGA AUTOMÁTICA DESDE ONEDRIVE ═════════════════════════════════════════
+async function init(){
+  show('loading');
+  try {
+    const res = await fetch(JSON_FILE, { credentials:'include', cache:'no-cache' });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    loadData(data);
+    show('dash');
+  } catch(e) {
+    console.error(e);
+    show('error');
+  }
+}
+
+function loadData(d){
+  MESES        = d.meses    || [];
+  PNA_VIDA_MES = d.pnaVida  || [];
+  PNA_GMM_MES  = d.pnaGMM   || [];
+  PNA_AH_MES   = d.pnaAH    || [];
+  POL_VIDA_MES = d.polVida  || [];
+  POL_GMM_MES  = d.polGMM   || [];
+  POL_AH_MES   = d.polAH    || [];
+  agentes      = (d.agentes || []).map(a=>({
+    ...a,
+    vidaMes:a.vidaMes||MESES.map(()=>0), gmmMes:a.gmmMes||MESES.map(()=>0), ahMes:a.ahMes||MESES.map(()=>0),
+    polVM:a.polVM||MESES.map(()=>0),     polGM:a.polGM||MESES.map(()=>0),   polAM:a.polAM||MESES.map(()=>0),
+  }));
+  if(d.actualizado) document.getElementById('hdrDate').textContent='⬆ '+d.actualizado;
+  selMeses.clear(); selAgente='all';
+  initFilters(); applyFilters();
+}
+
+function show(s){
+  document.getElementById('loadingState').style.display = s==='loading'?'flex':'none';
+  document.getElementById('errorState').style.display   = s==='error'  ?'block':'none';
+  document.getElementById('dashState').style.display    = s==='dash'   ?'block':'none';
+}
+
+// ═══ HELPERS ══════════════════════════════════════════════════════════════════
+const mxn=n=>n.toLocaleString('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:0,maximumFractionDigits:0});
+const fmt=n=>n>=1e6?'$'+(n/1e6).toFixed(2)+'M':n>=1e3?'$'+Math.round(n/1e3)+'K':'$'+n.toLocaleString();
+const activeMesIdx=()=>selMeses.size===0?MESES.map((_,i)=>i):[...selMeses].sort((a,b)=>a-b);
+const sumArr=(arr,idx)=>idx.reduce((s,i)=>s+(arr[i]||0),0);
+const agentTotals=(a,idx)=>({rV:sumArr(a.vidaMes,idx),rG:sumArr(a.gmmMes,idx),rA:sumArr(a.ahMes,idx),pV:sumArr(a.polVM,idx),pG:sumArr(a.polGM,idx),pA:sumArr(a.polAM,idx)});
+const periodLabel=()=>selMeses.size===0?MESES[0]+' – '+MESES[MESES.length-1]+' 2026':[...selMeses].sort((a,b)=>a-b).map(i=>MESES[i]).join(', ')+' 2026';
+
+// ═══ FILTROS ══════════════════════════════════════════════════════════════════
+function initFilters(){
+  const sel=document.getElementById('selAgente');
+  sel.innerHTML='<option value="all">Todos</option>';
+  agentes.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=a.n;sel.appendChild(o);});
+  const row=document.getElementById('mesRow'); row.innerHTML='';
+  const btnT=document.createElement('button'); btnT.id='btnTodos'; btnT.className='fbtn on'; btnT.textContent='Todos';
+  btnT.onclick=()=>{selMeses.clear();updateMesBtns();applyFilters();}; row.appendChild(btnT);
+  MESES.forEach((m,i)=>{
+    const b=document.createElement('button'); b.className='fbtn'; b.textContent=m; b.dataset.idx=i;
+    b.onclick=()=>{if(selMeses.has(i))selMeses.delete(i);else selMeses.add(i);updateMesBtns();applyFilters();};
+    row.appendChild(b);
+  });
+}
+
+function updateMesBtns(){
+  document.getElementById('btnTodos').classList.toggle('on',selMeses.size===0);
+  document.querySelectorAll('#mesRow .fbtn[data-idx]').forEach(b=>b.classList.toggle('on',selMeses.has(+b.dataset.idx)));
+}
+
+function applyFilters(){
+  selAgente=document.getElementById('selAgente').value;
+  const idx=activeMesIdx(), lbl=periodLabel();
+  const ag=selAgente==='all'?agentes:[agentes[+selAgente]];
+  let totPV=0,totPG=0,totPA=0,totRV=0,totRG=0,totRA=0;
+  ag.forEach(a=>{const t=agentTotals(a,idx);totPV+=t.pV;totPG+=t.pG;totPA+=t.pA;totRV+=t.rV;totRG+=t.rG;totRA+=t.rA;});
+  document.getElementById('k1').textContent=totPV; document.getElementById('k1s').textContent=lbl;
+  document.getElementById('k2').textContent=totPG; document.getElementById('k2s').textContent=lbl;
+  document.getElementById('k3').textContent=totPA; document.getElementById('k3s').textContent=lbl;
+  document.getElementById('k4').textContent=fmt(totRV+totRG+totRA); document.getElementById('k4s').textContent=lbl;
+  document.getElementById('k5').textContent=selAgente==='all'?ag.filter(a=>{const t=agentTotals(a,idx);return t.pV+t.pG+t.pA>0;}).length:1;
+  document.getElementById('k5s').textContent=selAgente==='all'?'Con pólizas en período':'Agente seleccionado';
+  ['csPNA','csPol','csTbl'].forEach(id=>document.getElementById(id).textContent='Período: '+lbl);
+  buildMonthly(idx); buildMix(idx,totRV,totRG,totRA,lbl); buildPNA(ag,idx); buildPol(ag,idx); buildTable(ag,idx);
+}
+
+// ═══ GRÁFICAS ═════════════════════════════════════════════════════════════════
+function buildMonthly(idx){
+  if(cM)cM.destroy();
+  const active=new Set(idx);
+  const op=i=>selMeses.size===0||active.has(i)?0.85:0.18;
+  cM=new Chart(document.getElementById('cMonthly'),{type:'bar',data:{labels:MESES,datasets:[
+    {label:'VIDA',data:PNA_VIDA_MES,backgroundColor:PNA_VIDA_MES.map((_,i)=>`rgba(37,99,235,${op(i)})`),borderRadius:4,stack:'s'},
+    {label:'GMM', data:PNA_GMM_MES, backgroundColor:PNA_GMM_MES.map((_,i)=>`rgba(22,163,74,${op(i)})`), borderRadius:4,stack:'s'},
+    {label:'A&H', data:PNA_AH_MES,  backgroundColor:PNA_AH_MES.map((_,i)=>`rgba(124,58,237,${op(i)})`), borderRadius:4,stack:'s'},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{
+    legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:10}},
+    tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${mxn(c.parsed.y)}`}}
+  },scales:{
+    x:{grid:{display:false},ticks:{font:{size:11}},stacked:true},
+    y:{grid:{color:'#f1f5f9'},stacked:true,ticks:{font:{size:10},callback:v=>'$'+(v/1000).toFixed(0)+'K'}}
+  },onClick:(_,els)=>{if(!els.length)return;const mi=els[0].index;if(selMeses.has(mi))selMeses.delete(mi);else selMeses.add(mi);updateMesBtns();applyFilters();}}});
+}
+
+function buildMix(idx,vida,gmm,ah,lbl){
+  if(cX)cX.destroy();
+  const total=vida+gmm+ah;
+  cX=new Chart(document.getElementById('cMix'),{type:'doughnut',data:{labels:['VIDA','GMM','A&H'],datasets:[{data:[vida,gmm,ah],backgroundColor:['#2563eb','#16a34a','#7c3aed'],borderWidth:0,hoverOffset:8}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:10}},tooltip:{callbacks:{label:c=>` ${c.label}: ${mxn(c.parsed)} (${total?((c.parsed/total)*100).toFixed(1):0}%)`}}}},
+  plugins:[{id:'ct',afterDraw(ch){const{ctx,chartArea:{left,right,top,bottom}}=ch;const cx=(left+right)/2,cy=(top+bottom)/2;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillStyle='#0f172a';ctx.fillText(fmt(total),cx,cy-8);ctx.font='10px -apple-system,sans-serif';ctx.fillStyle='#94a3b8';ctx.fillText(lbl.length>14?'Período sel.':lbl,cx,cy+8);ctx.restore();}}]});
+}
+
+function buildPNA(ag,idx){
+  if(cP)cP.destroy();
+  const rows=ag.map(a=>({s:a.s,...agentTotals(a,idx)})).filter(r=>r.rV+r.rG+r.rA>0).sort((a,b)=>(b.rV+b.rG+b.rA)-(a.rV+a.rG+a.rA)).slice(0,12);
+  cP=new Chart(document.getElementById('cPNA'),{type:'bar',data:{labels:rows.map(r=>r.s),datasets:[
+    {label:'VIDA',data:rows.map(r=>r.rV),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4,stack:'s'},
+    {label:'GMM', data:rows.map(r=>r.rG),backgroundColor:'rgba(22,163,74,.8)', borderRadius:4,stack:'s'},
+    {label:'A&H', data:rows.map(r=>r.rA),backgroundColor:'rgba(124,58,237,.8)',borderRadius:4,stack:'s'},
+  ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:10}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${mxn(c.parsed.x)}`}}},scales:{x:{grid:{color:'#f1f5f9'},stacked:true,ticks:{font:{size:10},callback:v=>'$'+(v/1000).toFixed(0)+'K'}},y:{grid:{display:false},ticks:{font:{size:11}},stacked:true}}}});
+}
+
+function buildPol(ag,idx){
+  if(cQ)cQ.destroy();
+  const rows=ag.map(a=>({s:a.s,...agentTotals(a,idx)})).filter(r=>r.pV+r.pG+r.pA>0).sort((a,b)=>(b.pV+b.pG+b.pA)-(a.pV+a.pG+a.pA)).slice(0,12);
+  cQ=new Chart(document.getElementById('cPol'),{type:'bar',data:{labels:rows.map(r=>r.s),datasets:[
+    {label:'VIDA',data:rows.map(r=>r.pV),backgroundColor:'rgba(37,99,235,.8)',borderRadius:4,stack:'s'},
+    {label:'GMM', data:rows.map(r=>r.pG),backgroundColor:'rgba(22,163,74,.8)', borderRadius:4,stack:'s'},
+    {label:'A&H', data:rows.map(r=>r.pA),backgroundColor:'rgba(124,58,237,.8)',borderRadius:4,stack:'s'},
+  ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:10}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.x} pólizas`}}},scales:{x:{grid:{color:'#f1f5f9'},stacked:true,ticks:{font:{size:10},stepSize:1}},y:{grid:{display:false},ticks:{font:{size:11}},stacked:true}}}});
+}
+
+function buildTable(ag,idx){
+  const rows=ag.map(a=>({n:a.n,...agentTotals(a,idx)})).sort((a,b)=>(b.rV+b.rG+b.rA)-(a.rV+a.rG+a.rA));
+  let tV=0,tG=0,tA=0,rV=0,rG=0,rA=0;
+  rows.forEach(r=>{tV+=r.pV;tG+=r.pG;tA+=r.pA;rV+=r.rV;rG+=r.rG;rA+=r.rA;});
+  document.getElementById('tblBody').innerHTML=rows.map(r=>`<tr>
+    <td class="fw">${r.n}</td>
+    <td class="tr"><span class="badge-v">${r.pV}</span></td><td class="tr">${mxn(r.rV)}</td>
+    <td class="tr"><span class="badge-g">${r.pG}</span></td><td class="tr">${mxn(r.rG)}</td>
+    <td class="tr"><span class="badge-a">${r.pA}</span></td><td class="tr">${mxn(r.rA)}</td>
+    <td class="tr fw">${r.pV+r.pG+r.pA}</td><td class="tr fw">${mxn(r.rV+r.rG+r.rA)}</td>
+  </tr>`).join('')+`<tr class="ttl">
+    <td>TOTAL</td>
+    <td class="tr">${tV}</td><td class="tr">${mxn(rV)}</td>
+    <td class="tr">${tG}</td><td class="tr">${mxn(rG)}</td>
+    <td class="tr">${tA}</td><td class="tr">${mxn(rA)}</td>
+    <td class="tr">${tV+tG+tA}</td><td class="tr">${mxn(rV+rG+rA)}</td>
+  </tr>`;
+}
+
+// ═══ ARRANQUE ═════════════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
